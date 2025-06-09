@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import IndexPage from './components/IndexPage.vue'
 import CoreSetup from './components/CoreSetup.vue'
 import ServicesGuide from './components/ServicesGuide.vue'
+import GPUPassthrough from './components/GPUPassthrough.vue'
+import SecurityMaintenance from './components/SecurityMaintenance.vue'
 
 const currentPage = ref('index')
 
@@ -23,6 +25,14 @@ const handleNavigation = (page: string) => {
     />
     <ServicesGuide 
       v-else-if="currentPage === 'services-guide'" 
+      @navigate="handleNavigation" 
+    />
+    <GPUPassthrough 
+      v-else-if="currentPage === 'gpu-passthrough'" 
+      @navigate="handleNavigation" 
+    />
+    <SecurityMaintenance 
+      v-else-if="currentPage === 'security-maintenance'" 
       @navigate="handleNavigation" 
     />
   </div>

@@ -55,44 +55,63 @@ const backToIndex = () => {
       <h2 class="text-2xl font-semibold mb-4">Step 2: ZFS Pool Creation</h2>
 
       <article class="mb-6">
-        <h3 class="text-xl font-semibold mb-2">PC1 (after Proxmox installation):</h3>
+        <h3 class="text-xl font-semibold mb-2">PC1 (Mini PC - Ryzen 5500U, 64GB RAM, 2TB SSD):</h3>
         <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto mb-4"><code>
-# Create main storage pool
-zpool create -o ashift=12 vm-storage /dev/nvme0n1
+# Identify the 2TB SSD
+lsblk
+# Expected: /dev/sda or /dev/nvme0n1 (2TB SSD)
 
-# Optimize for VMs
+# Create main storage pool on 2TB SSD
+zpool create -o ashift=12 vm-storage /dev/sda
+
+# Optimize for VMs and containers
 zfs set compression=lz4 vm-storage
 zfs set atime=off vm-storage
+zfs set recordsize=64k vm-storage  # Good balance for VMs
 
-# Create datasets
+# Create datasets for different workloads
 zfs create vm-storage/vm-disks
 zfs create vm-storage/containers  
 zfs create vm-storage/backups
+zfs create vm-storage/templates
         </code></pre>
       </article>
 
       <article>
-        <h3 class="text-xl font-semibold mb-2">PC2 (after Proxmox installation):</h3>
+        <h3 class="text-xl font-semibold mb-2">PC2 (Gaming PC - Ryzen 7 9700X, 64GB RAM, RX 7800XT):</h3>
         <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto mb-4"><code>
 # Identify drives first
 lsblk
+# Expected layout:
+# /dev/nvme0n1 - 500GB NVMe (Gaming VM - fastest)
+# /dev/nvme1n1 - 500GB NVMe (Gaming VM mirror or separate)
+# /dev/sda - 4TB HDD (Storage pool)
+# /dev/sdb - 1TB SSD (Storage pool mirror)
+# /dev/sdc - 250GB SSD (Cache/transcoding)
 
-# Fast pool for gaming VM (1TB NVMe)
+# Fast pool for gaming VM (500GB NVMe)
 zpool create -o ashift=12 vm-fast /dev/nvme0n1
 zfs set compression=lz4 vm-fast
 zfs set atime=off vm-fast
+zfs set recordsize=64k vm-fast  # Optimized for gaming workloads
 
-# Storage pool (500GB SSD mirror + 4TB HDD)
+# Storage pool (4TB HDD + 1TB SSD mirror for redundancy)
 zpool create -o ashift=12 storage mirror /dev/sda /dev/sdb
-zpool add storage /dev/sdc
+# Add 250GB SSD as L2ARC cache for better read performance
+zpool add storage cache /dev/sdc
 zfs set compression=lz4 storage
 zfs set atime=off storage
 
-# Create datasets
-zfs create vm-fast/gaming
+# Create datasets with specific optimizations
+zfs create vm-fast/gaming-vm
+zfs set recordsize=64k vm-fast/gaming-vm  # Gaming VM optimization
+
 zfs create storage/media
+zfs set recordsize=1M storage/media  # Large file optimization for media
 zfs create storage/nextcloud
 zfs create storage/backups
+zfs create storage/transcoding-cache
+zfs set recordsize=128k storage/transcoding-cache  # Video transcoding temp
         </code></pre>
       </article>
     </section>
@@ -213,8 +232,8 @@ pvecm nodes
 
       <h3 class="text-xl font-semibold mt-6 mb-2">Resource Allocation Plan</h3>
       <ul class="list-disc list-inside space-y-1 mt-3">
-        <li>PC1: Development VM (24GB), PiHole LXC (2GB), Monitoring LXC (8GB), etc.</li>
-        <li>PC2: Gaming VM (32GB + GPU), Storage/Media VM (20GB)</li>
+        <li><strong>PC1 (64GB total):</strong> Development VM (24GB), PiHole LXC (2GB), Monitoring LXC (8GB), Reverse Proxy LXC (2GB), Host reserves (28GB)</li>
+        <li><strong>PC2 (64GB total):</strong> Gaming VM (32GB + RX 7800XT), Storage/Media VM (20GB), Host reserves (12GB)</li>
       </ul>
 
       <p class="mt-4">The foundation will be solid and ready for your services!</p>

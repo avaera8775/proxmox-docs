@@ -15,6 +15,16 @@ const guides = [
     id: 'services-guide',
     title: 'Services Setup Guide',
     description: 'Complete homelab services deployment including development environments, monitoring, and media services.'
+  },
+  {
+    id: 'gpu-passthrough',
+    title: 'GPU Passthrough Guide',
+    description: 'Complete RX 7800XT GPU passthrough setup for gaming VM with VFIO configuration and troubleshooting.'
+  },
+  {
+    id: 'security-maintenance',
+    title: 'Security & Maintenance Guide',
+    description: 'Essential security hardening, user management, monitoring, and ongoing maintenance procedures.'
   }
 ]
 
