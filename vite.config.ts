@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// https://vite.dev/config/
+// Replace 'proxmox-docs' with your GitHub repo name
 export default defineConfig({
+  base: '/proxmox-docs/',
   plugins: [vue()],
 })
