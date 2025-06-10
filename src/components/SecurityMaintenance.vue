@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useGuideNavigation } from '../composables/useGuideNavigation'
 
-const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
+const { currentGuide, previousGuide, navigateToHome, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
 const progress = getProgressInfo()
 
 // Collapsible sections state
