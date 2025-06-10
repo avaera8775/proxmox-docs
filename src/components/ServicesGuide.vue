@@ -1,12 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useGuideNavigation } from '../composables/useGuideNavigation'
 
-const router = useRouter()
-
-const backToIndex = () => {
-  router.push('/')
-}
+const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
+const progress = getProgressInfo()
 
 // Collapsible sections state
 const expandedSections = ref<Record<string, boolean>>({
@@ -44,18 +41,46 @@ const domains = [
 <template>
   <main class="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
     <!-- Navigation Header -->
-    <div class="mb-8 flex items-center justify-between">
-      <button 
-        @click="backToIndex"
-        class="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-      >
-        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
-        </svg>
-        Back to Index
-      </button>
-      <div class="text-sm text-gray-500 dark:text-gray-400">
-        Services Setup Guide
+    <div class="mb-8">
+      <!-- Progress Bar -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <span>Step {{ progress.current }} of {{ progress.total }}</span>
+          <span>{{ progress.percentage }}% Complete</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" :style="{ width: progress.percentage + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="flex items-center justify-between">
+        <button 
+          @click="navigateToHome"
+          class="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+          </svg>
+          Back to Index
+        </button>
+
+        <div class="text-center">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ currentGuide?.title }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ currentGuide?.description }}</p>
+        </div>
+
+        <button 
+          v-if="nextGuide"
+          @click="navigateToNext"
+          class="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+        >
+          Next: {{ nextGuide.title.replace(' Guide', '') }}
+          <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <div v-else class="w-32"></div> <!-- Spacer for alignment -->
       </div>
     </div>
 
