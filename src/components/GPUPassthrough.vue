@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { defineEmits, ref } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits<{
-  navigate: [page: string]
-}>()
+const router = useRouter()
 
 const backToIndex = () => {
-  emit('navigate', 'index')
+  router.push('/')
 }
 
 // Collapsible sections state

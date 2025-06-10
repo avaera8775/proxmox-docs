@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { defineEmits } from 'vue'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits<{
-  navigate: [page: string]
-}>()
+const router = useRouter()
 
 const backToIndex = () => {
-  emit('navigate', 'index')
+  router.push('/')
 }
 </script>
 

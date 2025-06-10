@@ -1,39 +1,9 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import IndexPage from './components/IndexPage.vue'
-import CoreSetup from './components/CoreSetup.vue'
-import ServicesGuide from './components/ServicesGuide.vue'
-import GPUPassthrough from './components/GPUPassthrough.vue'
-import SecurityMaintenance from './components/SecurityMaintenance.vue'
-
-const currentPage = ref('index')
-
-const handleNavigation = (page: string) => {
-  currentPage.value = page
-}
+// No need for manual navigation logic anymore - Vue Router handles it
 </script>
 
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-900">
-    <IndexPage 
-      v-if="currentPage === 'index'" 
-      @navigate="handleNavigation" 
-    />
-    <CoreSetup 
-      v-else-if="currentPage === 'core-setup'" 
-      @navigate="handleNavigation" 
-    />
-    <ServicesGuide 
-      v-else-if="currentPage === 'services-guide'" 
-      @navigate="handleNavigation" 
-    />
-    <GPUPassthrough 
-      v-else-if="currentPage === 'gpu-passthrough'" 
-      @navigate="handleNavigation" 
-    />
-    <SecurityMaintenance 
-      v-else-if="currentPage === 'security-maintenance'" 
-      @navigate="handleNavigation" 
-    />
+    <router-view />
   </div>
 </template>

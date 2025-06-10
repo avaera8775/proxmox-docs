@@ -1,35 +1,37 @@
 <script lang="ts" setup>
-import { defineEmits } from 'vue'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits<{
-  navigate: [page: string]
-}>()
+const router = useRouter()
 
 const guides = [
   {
     id: 'core-setup',
     title: 'Core Setup Guide',
-    description: 'Step-by-step Proxmox VE installation, ZFS pool creation, cluster setup, and storage configuration.'
+    description: 'Step-by-step Proxmox VE installation, ZFS pool creation, cluster setup, and storage configuration.',
+    path: '/core-setup'
   },
   {
     id: 'services-guide',
     title: 'Services Setup Guide',
-    description: 'Complete homelab services deployment including development environments, monitoring, and media services.'
+    description: 'Complete homelab services deployment including development environments, monitoring, and media services.',
+    path: '/services-guide'
   },
   {
     id: 'gpu-passthrough',
     title: 'GPU Passthrough Guide',
-    description: 'Complete RX 7800XT GPU passthrough setup for gaming VM with VFIO configuration and troubleshooting.'
+    description: 'Complete RX 7800XT GPU passthrough setup for gaming VM with VFIO configuration and troubleshooting.',
+    path: '/gpu-passthrough'
   },
   {
     id: 'security-maintenance',
     title: 'Security & Maintenance Guide',
-    description: 'Essential security hardening, user management, monitoring, and ongoing maintenance procedures.'
+    description: 'Essential security hardening, user management, monitoring, and ongoing maintenance procedures.',
+    path: '/security-maintenance'
   }
 ]
 
-const navigateToGuide = (guideId: string) => {
-  emit('navigate', guideId)
+const navigateToGuide = (path: string) => {
+  router.push(path)
 }
 </script>
 
@@ -70,7 +72,7 @@ const navigateToGuide = (guideId: string) => {
             <!-- Footer -->
             <div class="flex items-center justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
               <button 
-                @click="navigateToGuide(guide.id)"
+                @click="navigateToGuide(guide.path)"
                 class="flex items-center text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
               >
                 Open Guide
