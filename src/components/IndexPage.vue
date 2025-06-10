@@ -96,7 +96,7 @@ const navigateToGuide = (guideId: string) => {
               </svg>
             </div>
             <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Hardware Requirements</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300">Two PCs with adequate RAM, storage, and network connectivity</p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">PCs with adequate RAM, storage, GPU, and network connectivity</p>
           </div>
           <div class="text-center">
             <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-3">
