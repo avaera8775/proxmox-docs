@@ -1139,5 +1139,53 @@ echo "0 2 * * * /usr/local/bin/zfs-snapshot.sh" | crontab -</code></pre>
       </div>
     </section>
 
+    <!-- Bottom Navigation -->
+    <section class="mt-16 pt-8 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between">
+        <button 
+          v-if="previousGuide"
+          @click="navigateToPrevious"
+          class="flex items-center px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+          </svg>
+          {{ previousGuide.title }}
+        </button>
+        <div v-else class="w-32"></div>
+
+        <button 
+          @click="navigateToHome"
+          class="px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          Back to Index
+        </button>
+
+        <button 
+          v-if="nextGuide"
+          @click="navigateToNext"
+          class="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          {{ nextGuide.title }}
+          <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+        <div v-else class="w-32"></div>
+      </div>
+
+      <!-- Guide Progress Indicator -->
+      <div class="mt-6 flex justify-center">
+        <div class="flex space-x-2">
+          <div 
+            v-for="(guide, index) in guides" 
+            :key="guide.path"
+            class="w-3 h-3 rounded-full transition-colors"
+            :class="index <= progress.current - 1 ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+          ></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </template>

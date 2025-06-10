@@ -1,12 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useGuideNavigation } from '../composables/useGuideNavigation'
 
-const router = useRouter()
-
-const backToIndex = () => {
-  router.push('/')
-}
+const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
+const progress = getProgressInfo()
 
 // Collapsible sections state
 const expandedSections = ref<Record<string, boolean>>({
@@ -29,18 +26,40 @@ const toggleSection = (section: string) => {
 <template>
   <main class="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
     <!-- Navigation Header -->
-    <div class="mb-8 flex items-center justify-between">
-      <button 
-        @click="backToIndex"
-        class="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-      >
-        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
-        </svg>
-        Back to Index
-      </button>
-      <div class="text-sm text-gray-500 dark:text-gray-400">
-        Security & Maintenance Guide
+    <div class="mb-8">
+      <!-- Progress Bar -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <span>Step {{ progress.current }} of {{ progress.total }}</span>
+          <span>{{ progress.percentage }}% Complete</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" :style="{ width: progress.percentage + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="flex items-center justify-between">
+        <button 
+          @click="navigateToHome"
+          class="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+          </svg>
+          Back to Index
+        </button>
+
+        <div class="text-center">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ currentGuide?.title }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ currentGuide?.description }}</p>
+        </div>
+
+        <div class="w-32 flex justify-end">
+          <div class="px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-lg text-sm font-medium">
+            Complete!
+          </div>
+        </div>
       </div>
     </div>
 
@@ -491,6 +510,58 @@ zfs set logbias=throughput storage
             <li>Schedule regular security audits</li>
             <li>Keep security tools and signatures updated</li>
           </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <section class="mt-16 pt-8 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between">
+        <button 
+          v-if="previousGuide"
+          @click="navigateToPrevious"
+          class="flex items-center px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+          </svg>
+          {{ previousGuide.title }}
+        </button>
+        <div v-else class="w-32"></div>
+
+        <button 
+          @click="navigateToHome"
+          class="px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          Back to Index
+        </button>
+
+        <div class="w-32 flex justify-end">
+          <div class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium">
+            🎉 Homelab Complete!
+          </div>
+        </div>
+      </div>
+
+      <!-- Guide Progress Indicator -->
+      <div class="mt-6 flex justify-center">
+        <div class="flex space-x-2">
+          <div 
+            v-for="(guide, index) in guides" 
+            :key="guide.path"
+            class="w-3 h-3 rounded-full transition-colors"
+            :class="index <= progress.current - 1 ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Completion Message -->
+      <div class="mt-8 text-center">
+        <div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <h3 class="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">🎊 Congratulations!</h3>
+          <p class="text-green-700 dark:text-green-300">
+            You've successfully completed the entire Proxmox homelab setup journey. Your infrastructure is now secure, optimized, and ready for production use!
+          </p>
         </div>
       </div>
     </section>
