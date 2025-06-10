@@ -15,6 +15,7 @@ const expandedSections = ref<Record<string, boolean>>({
   pc1: false,
   pc2: false,
   domains: false,
+  production: false,
   backup: false,
   verification: false
 })
@@ -521,6 +522,447 @@ docker-compose up -d
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Production Domain Setup Section -->
+    <section class="mb-8">
+      <button 
+        @click="toggleSection('production')"
+        class="w-full flex items-center justify-between p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+      >
+        <h2 class="text-2xl font-semibold text-teal-900 dark:text-teal-100">Production Domain Setup with SSL & External Access</h2>
+        <svg 
+          class="w-6 h-6 text-teal-600 dark:text-teal-400 transform transition-transform"
+          :class="{ 'rotate-180': expandedSections.production }"
+          fill="currentColor" 
+          viewBox="0 0 20 20"
+        >
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+      
+      <div v-show="expandedSections.production" class="mt-4 space-y-6">
+        <!-- Overview -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🌐 Overview</h3>
+          <p class="mb-4">Upgrade from local-only access to production-ready setup with real domains, SSL certificates, and secure external access.</p>
+          
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <h4 class="font-semibold text-red-900 dark:text-red-100 mb-2">❌ Current (Local Only)</h4>
+              <ul class="text-sm space-y-1">
+                <li>• http://files.homelab.local</li>
+                <li>• http://media.homelab.local</li>
+                <li>• No SSL encryption</li>
+                <li>• Internal network only</li>
+              </ul>
+            </div>
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 class="font-semibold text-green-900 dark:text-green-100 mb-2">✅ Production (Upgraded)</h4>
+              <ul class="text-sm space-y-1">
+                <li>• https://files.yourdomain.com</li>
+                <li>• https://media.yourdomain.com</li>
+                <li>• SSL certificates (Let's Encrypt)</li>
+                <li>• Secure external access via Tailscale</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">📋 Prerequisites</h3>
+          <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">⚠️ Important Requirements</h4>
+            <ul class="text-sm space-y-1">
+              <li>• <strong>Domain ownership:</strong> You must own a domain (e.g., yourdomain.com)</li>
+              <li>• <strong>DNS control:</strong> Access to domain's DNS settings</li>
+              <li>• <strong>Cost consideration:</strong> Domain registration (~$10-15/year)</li>
+              <li>• <strong>Security awareness:</strong> External access requires proper security measures</li>
+            </ul>
+          </div>
+          
+          <h4 class="font-semibold mb-2">Recommended Domain Registrars:</h4>
+          <ul class="list-disc list-inside text-sm space-y-1">
+            <li>Cloudflare (best for DNS management)</li>
+            <li>Namecheap (good balance of price/features)</li>
+            <li>Google Domains (simple interface)</li>
+          </ul>
+        </div>
+
+        <!-- PiHole DNS Configuration -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🔧 Step 1: PiHole DNS Configuration</h3>
+          <p class="mb-4">Configure split-brain DNS - internal devices resolve to local IP, external devices use Tailscale:</p>
+          
+          <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto mb-4"><code># Access PiHole admin interface
+# http://10.10.10.102/admin
+
+# Add these DNS records in PiHole:
+# Local DNS Records → Add new domain/IP
+
+# Domain: media.yourdomain.com
+# IP: 10.10.10.104
+
+# Domain: files.yourdomain.com  
+# IP: 10.10.10.104
+
+# Domain: pihole.yourdomain.com
+# IP: 10.10.10.104
+
+# Domain: monitor.yourdomain.com
+# IP: 10.10.10.104</code></pre>
+
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 How Split-Brain DNS Works</h4>
+            <p class="text-sm">Internal devices query PiHole → Get local IP (10.10.10.104)<br>
+            External devices query public DNS → Get Tailscale IP → Tunnel to your network</p>
+          </div>
+        </div>
+
+        <!-- Nginx Proxy Manager SSL Setup -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🔒 Step 2: Nginx Proxy Manager SSL Setup</h3>
+          <p class="mb-4">Configure SSL certificates and proxy hosts in Nginx Proxy Manager:</p>
+          
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-semibold mb-2">Access Nginx Proxy Manager:</h4>
+              <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto"><code># Open web interface
+http://10.10.10.104:81
+
+# Default login (change immediately):
+# Email: admin@example.com
+# Password: changeme</code></pre>
+            </div>
+
+            <div>
+              <h4 class="font-semibold mb-2">Create Proxy Hosts with SSL:</h4>
+              <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                <p class="text-sm mb-2"><strong>For each domain (media, files, pihole, monitor):</strong></p>
+                <ol class="list-decimal list-inside text-sm space-y-1">
+                  <li>Click "Proxy Hosts" → "Add Proxy Host"</li>
+                  <li><strong>Domain:</strong> media.yourdomain.com</li>
+                  <li><strong>Forward Hostname/IP:</strong> 10.10.10.202</li>
+                  <li><strong>Forward Port:</strong> 8096 (for Jellyfin)</li>
+                  <li>Enable "Block Common Exploits"</li>
+                  <li>Go to "SSL" tab</li>
+                  <li>Select "Request a new SSL Certificate"</li>
+                  <li>Enable "Force SSL", "HTTP/2 Support"</li>
+                  <li>Enter your email for Let's Encrypt</li>
+                  <li>Accept Terms of Service</li>
+                  <li>Click "Save"</li>
+                </ol>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-semibold mb-2">Complete Domain Mapping:</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
+                  <thead>
+                    <tr class="bg-gray-100 dark:bg-gray-700">
+                      <th class="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">Domain</th>
+                      <th class="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">Forward To</th>
+                      <th class="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">Service</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">media.yourdomain.com</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.202:8096</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">Jellyfin</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">files.yourdomain.com</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.202:8080</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">Nextcloud</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">pihole.yourdomain.com</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.102:80</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">PiHole Admin</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">monitor.yourdomain.com</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.103:3000</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">Grafana</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tailscale External Access -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🌍 Step 3: Tailscale External Access</h3>
+          <p class="mb-4">Install Tailscale for secure external access without port forwarding:</p>
+          
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-semibold mb-2">Install Tailscale on Reverse Proxy (10.10.10.104):</h4>
+              <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto"><code># SSH into reverse proxy LXC
+ssh root@10.10.10.104
+
+# Install Tailscale
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Connect to your Tailscale network
+sudo tailscale up
+
+# Follow the URL to authenticate in your browser
+# This will give your reverse proxy a Tailscale IP (e.g., 100.x.x.x)
+
+# Enable subnet routing (optional - allows access to entire homelab)
+sudo tailscale up --advertise-routes=10.10.10.0/24
+
+# Check status
+sudo tailscale status</code></pre>
+            </div>
+
+            <div>
+              <h4 class="font-semibold mb-2">Install Tailscale on External Devices:</h4>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h5 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">📱 Mobile Devices</h5>
+                  <ul class="text-sm space-y-1">
+                    <li>• Download Tailscale app from App Store/Play Store</li>
+                    <li>• Sign in with same account</li>
+                    <li>• Connect to your network</li>
+                  </ul>
+                </div>
+                <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h5 class="font-semibold text-green-900 dark:text-green-100 mb-2">💻 Laptops/Computers</h5>
+                  <ul class="text-sm space-y-1">
+                    <li>• Download from tailscale.com</li>
+                    <li>• Install and authenticate</li>
+                    <li>• Same URLs work everywhere</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-semibold mb-2">Configure Domain DNS (External Resolution):</h4>
+              <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto"><code># In your domain registrar's DNS settings, add A records:
+# (Replace 100.x.x.x with your reverse proxy's Tailscale IP)
+
+# A Record: media.yourdomain.com → 100.x.x.x
+# A Record: files.yourdomain.com → 100.x.x.x  
+# A Record: pihole.yourdomain.com → 100.x.x.x
+# A Record: monitor.yourdomain.com → 100.x.x.x
+
+# Or use a wildcard:
+# A Record: *.yourdomain.com → 100.x.x.x</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Considerations -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🔐 Security Considerations</h3>
+          
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="space-y-4">
+              <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h4 class="font-semibold text-green-900 dark:text-green-100 mb-2">✅ Security Benefits</h4>
+                <ul class="text-sm space-y-1">
+                  <li>• No port forwarding required</li>
+                  <li>• End-to-end encryption via Tailscale</li>
+                  <li>• SSL certificates for HTTPS</li>
+                  <li>• Access control via Tailscale ACLs</li>
+                  <li>• Device authentication required</li>
+                </ul>
+              </div>
+              
+              <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">🛡️ Additional Security</h4>
+                <ul class="text-sm space-y-1">
+                  <li>• Enable 2FA on all services</li>
+                  <li>• Use strong passwords</li>
+                  <li>• Regular security updates</li>
+                  <li>• Monitor access logs</li>
+                  <li>• Backup configurations</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div>
+              <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <h4 class="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">⚠️ Important Notes</h4>
+                <ul class="text-sm space-y-1">
+                  <li>• Keep Tailscale as backup access method</li>
+                  <li>• Monitor SSL certificate expiry</li>
+                  <li>• Test external access regularly</li>
+                  <li>• Document emergency access procedures</li>
+                  <li>• Consider firewall rules for extra security</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- How It All Works Together -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🔄 How It All Works Together</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold mb-3 text-blue-900 dark:text-blue-100">🏠 Internal Devices</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-blue-500 rounded-full mr-2"></span>
+                  <span>Connect to WiFi</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-blue-500 rounded-full mr-2"></span>
+                  <span>PiHole resolves domains to 10.10.10.104</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-blue-500 rounded-full mr-2"></span>
+                  <span>Nginx Proxy Manager routes to services</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-green-500 rounded-full mr-2"></span>
+                  <span><strong>Result:</strong> https://media.yourdomain.com works</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold mb-3 text-purple-900 dark:text-purple-100">🌍 External Devices</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+                  <span>Connect to Tailscale app</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+                  <span>Join your network virtually</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+                  <span>DNS resolves to Tailscale IP</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="w-4 h-4 bg-green-500 rounded-full mr-2"></span>
+                  <span><strong>Result:</strong> Same URLs work everywhere</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification & Testing -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">✅ Verification & Testing</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-semibold mb-2">Test Internal Access:</h4>
+              <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto"><code># From any device on your network:
+curl -I https://media.yourdomain.com
+curl -I https://files.yourdomain.com
+
+# Should return HTTP/2 200 with SSL certificate info</code></pre>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold mb-2">Test External Access:</h4>
+              <ol class="list-decimal list-inside text-sm space-y-1">
+                <li>Connect phone/laptop to mobile data (not home WiFi)</li>
+                <li>Connect to Tailscale</li>
+                <li>Visit https://media.yourdomain.com</li>
+                <li>Should work exactly like internal access</li>
+              </ol>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold mb-2">Monitor SSL Certificates:</h4>
+              <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto"><code># Check certificate expiry
+openssl s_client -connect media.yourdomain.com:443 -servername media.yourdomain.com 2>/dev/null | openssl x509 -noout -dates
+
+# Nginx Proxy Manager auto-renews Let's Encrypt certificates
+# Check renewal logs in NPM interface</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">🔧 Troubleshooting</h3>
+          
+          <div class="space-y-4">
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <h4 class="font-semibold text-red-900 dark:text-red-100 mb-2">❌ SSL Certificate Issues</h4>
+              <ul class="text-sm space-y-1">
+                <li>• <strong>Problem:</strong> Certificate generation fails</li>
+                <li>• <strong>Solution:</strong> Check domain DNS propagation (use dig or nslookup)</li>
+                <li>• <strong>Wait time:</strong> DNS changes can take 24-48 hours to propagate</li>
+              </ul>
+            </div>
+            
+            <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <h4 class="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">⚠️ External Access Not Working</h4>
+              <ul class="text-sm space-y-1">
+                <li>• Check Tailscale connection status on both ends</li>
+                <li>• Verify domain DNS points to correct Tailscale IP</li>
+                <li>• Test with `tailscale ping [device-name]`</li>
+                <li>• Check if subnet routing is enabled and accepted</li>
+              </ul>
+            </div>
+            
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 DNS Resolution Issues</h4>
+              <ul class="text-sm space-y-1">
+                <li>• Internal: Check PiHole local DNS records</li>
+                <li>• External: Verify domain registrar DNS settings</li>
+                <li>• Use `nslookup media.yourdomain.com` to test resolution</li>
+                <li>• Clear DNS cache: `sudo systemctl flush-dns` (Linux)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Final Summary -->
+        <div class="p-6 bg-gradient-to-r from-teal-50 to-blue-50 dark:from-teal-900/20 dark:to-blue-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+          <h3 class="text-xl font-semibold mb-4 text-teal-900 dark:text-teal-100">🎉 Configuration Complete!</h3>
+          
+          <div class="grid md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <h4 class="font-semibold mb-2">✅ What You've Achieved:</h4>
+              <ul class="space-y-1">
+                <li>• Professional SSL certificates</li>
+                <li>• Clean domain names</li>
+                <li>• Secure external access</li>
+                <li>• No port forwarding needed</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold mb-2">🔗 Your New URLs:</h4>
+              <ul class="space-y-1 font-mono">
+                <li>• https://media.yourdomain.com</li>
+                <li>• https://files.yourdomain.com</li>
+                <li>• https://pihole.yourdomain.com</li>
+                <li>• https://monitor.yourdomain.com</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold mb-2">🚀 Next Steps:</h4>
+              <ul class="space-y-1">
+                <li>• Set up monitoring for certificates</li>
+                <li>• Configure Tailscale ACLs</li>
+                <li>• Add more services as needed</li>
+                <li>• Enjoy your professional homelab!</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>
