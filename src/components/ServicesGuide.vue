@@ -1115,9 +1115,5 @@ echo "0 2 * * * /usr/local/bin/zfs-snapshot.sh" | crontab -</code></pre>
       </div>
     </section>
 
-    <!-- End note -->
-    <section class="mt-10 text-center text-gray-500 dark:text-gray-400">
-      <p>— End of services setup guide —</p>
-    </section>
   </main>
 </template>

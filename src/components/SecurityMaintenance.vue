@@ -496,9 +496,5 @@ zfs set logbias=throughput storage
       </div>
     </section>
 
-    <!-- End note -->
-    <section class="mt-10 text-center text-gray-500 dark:text-gray-400">
-      <p>— End of security & maintenance guide —</p>
-    </section>
   </main>
 </template>

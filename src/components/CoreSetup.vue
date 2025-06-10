@@ -331,10 +331,5 @@ zfs create storage/nextcloud
 
       <p>This helps keep data organized and provides flexibility for snapshots/backups per dataset.</p>
     </section>
-
-    <!-- End note -->
-    <section class="mt-10 text-center text-gray-500 dark:text-gray-400">
-      <p>— End of detailed setup instructions —</p>
-    </section>
   </main>
 </template>
