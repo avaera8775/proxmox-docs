@@ -25,6 +25,7 @@ const services = [
   { name: 'PiHole', ip: '10.10.10.102', node: 'PC1', type: 'LXC', purpose: 'DNS filtering' },
   { name: 'Monitoring Stack', ip: '10.10.10.103', node: 'PC1', type: 'LXC', purpose: 'Prometheus, Grafana' },
   { name: 'Reverse Proxy', ip: '10.10.10.104', node: 'PC1', type: 'LXC', purpose: 'Traefik/Nginx' },
+  { name: 'Documentation Server', ip: '10.10.10.105', node: 'PC1', type: 'LXC', purpose: 'MkDocs documentation' },
   { name: 'Gaming VM', ip: '10.10.10.201', node: 'PC2', type: 'VM', purpose: 'Windows + GPU passthrough' },
   { name: 'Storage/Media VM', ip: '10.10.10.202', node: 'PC2', type: 'VM', purpose: 'Nextcloud, Jellyfin' }
 ]
@@ -33,6 +34,7 @@ const domains = [
   { domain: 'dev.homelab.local', forward: '10.10.10.101:22', purpose: 'SSH to dev server' },
   { domain: 'pihole.homelab.local', forward: '10.10.10.102:80', purpose: 'PiHole admin' },
   { domain: 'monitor.homelab.local', forward: '10.10.10.103:3000', purpose: 'Grafana' },
+  { domain: 'docs.homelab.local', forward: '10.10.10.105:80', purpose: 'Documentation' },
   { domain: 'files.homelab.local', forward: '10.10.10.202:8080', purpose: 'Nextcloud' },
   { domain: 'media.homelab.local', forward: '10.10.10.202:8096', purpose: 'Jellyfin' }
 ]
@@ -165,6 +167,32 @@ const domains = [
       </button>
       
       <div v-show="expandedSections.pc1" class="mt-4 space-y-6">
+        <!-- LXC Container Configuration Fix -->
+        <div class="p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <h3 class="text-xl font-semibold mb-4 text-yellow-900 dark:text-yellow-100">⚠️ Important: Enable Nesting for Docker Containers</h3>
+          <p class="mb-4">Before proceeding with Docker-based services, enable nesting on existing LXC containers:</p>
+          <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto mb-4"><code># Enable nesting for existing Docker containers
+# Run these commands on the Proxmox host:
+
+# Enable nesting for Monitoring Stack LXC
+pct set 103 -features nesting=1
+
+# Enable nesting for Reverse Proxy LXC  
+pct set 104 -features nesting=1
+
+# Restart containers to apply changes
+pct restart 103
+pct restart 104
+
+# Verify nesting is enabled
+pct config 103 | grep nesting
+pct config 104 | grep nesting</code></pre>
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 Why Nesting is Required</h4>
+            <p class="text-sm">Docker requires access to kernel features that are restricted in LXC containers by default. Enabling nesting allows Docker to function properly within the container while maintaining security isolation.</p>
+          </div>
+        </div>
+
         <!-- Development VM -->
         <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <h3 class="text-xl font-semibold mb-4">Development VM (10.10.10.101)</h3>
@@ -367,6 +395,361 @@ docker-compose up -d
 # Access web interface at http://10.10.10.104:81
 # Default login: admin@example.com / changeme
           </code></pre>
+        </div>
+
+        <!-- Documentation Server LXC -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold mb-4">Documentation Server LXC (10.10.10.105)</h3>
+          <p class="mb-4">MkDocs with Material theme for professional documentation:</p>
+          <pre class="bg-gray-800 text-green-400 p-4 rounded-md overflow-x-auto mb-4"><code># Create LXC via Proxmox Web UI:
+# CT ID: 105
+# Template: Ubuntu 22.04
+# CPU: 2 cores
+# Memory: 2048 MB (2GB)
+# Storage: 30GB on vm-storage
+# Network: Static IP 10.10.10.105
+# Features: nesting=1 (enable during creation)
+
+# Install Docker
+sudo apt update && sudo apt install -y docker.io docker-compose git
+sudo usermod -aG docker $USER
+
+# Create documentation stack
+mkdir -p ~/documentation
+cd ~/documentation
+
+# Create directory structure for multiple documentation projects
+mkdir -p docs/{homelab,api,runbooks}
+
+# Create main MkDocs configuration
+cat > mkdocs.yml << 'EOF'
+site_name: Homelab Documentation
+site_description: Complete documentation for homelab infrastructure and services
+site_author: Homelab Admin
+site_url: https://docs.homelab.local
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+
+plugins:
+  - search
+  - git-revision-date-localized
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Infrastructure:
+    - Overview: infrastructure/overview.md
+    - Proxmox Setup: infrastructure/proxmox.md
+    - Network Configuration: infrastructure/network.md
+    - Storage: infrastructure/storage.md
+  - Services:
+    - Service Overview: services/overview.md
+    - PiHole: services/pihole.md
+    - Monitoring: services/monitoring.md
+    - Media Stack: services/media.md
+    - Development: services/development.md
+  - Runbooks:
+    - Backup Procedures: runbooks/backup.md
+    - Troubleshooting: runbooks/troubleshooting.md
+    - Maintenance: runbooks/maintenance.md
+  - API Documentation:
+    - API Overview: api/overview.md
+    - Endpoints: api/endpoints.md
+EOF
+
+# Create sample documentation structure
+cat > docs/index.md << 'EOF'
+# Homelab Documentation
+
+Welcome to the comprehensive documentation for our Proxmox-based homelab infrastructure.
+
+## Quick Links
+
+- [Infrastructure Overview](infrastructure/overview.md)
+- [Service Status](services/overview.md)
+- [Runbooks](runbooks/backup.md)
+- [API Documentation](api/overview.md)
+
+## Recent Updates
+
+- ✅ Added MkDocs documentation server
+- ✅ Configured reverse proxy with SSL
+- ✅ Implemented monitoring stack
+- ✅ Set up backup procedures
+
+## Architecture Overview
+
+```mermaid
+graph TB
+    A[Internet] --> B[Router]
+    B --> C[Proxmox Cluster]
+    C --> D[PC1 - Development]
+    C --> E[PC2 - Gaming/Storage]
+    D --> F[PiHole]
+    D --> G[Monitoring]
+    D --> H[Reverse Proxy]
+    D --> I[Documentation]
+    E --> J[Gaming VM]
+    E --> K[Media Server]
+```
+
+## Getting Started
+
+1. Review the [Infrastructure Overview](infrastructure/overview.md)
+2. Check [Service Status](services/overview.md)
+3. Familiarize yourself with [Runbooks](runbooks/backup.md)
+EOF
+
+# Create infrastructure documentation
+mkdir -p docs/infrastructure
+cat > docs/infrastructure/overview.md << 'EOF'
+# Infrastructure Overview
+
+## Hardware
+
+- **PC1**: Development and services node
+- **PC2**: Gaming and storage node
+
+## Network
+
+- **VLAN**: 10.10.10.0/24
+- **Gateway**: 10.10.10.1
+- **DNS**: 10.10.10.102 (PiHole)
+
+## Services
+
+| Service | IP | Node | Type | Purpose |
+|---------|----|----- |------|---------|
+| Development VM | 10.10.10.101 | PC1 | VM | Development environment |
+| PiHole | 10.10.10.102 | PC1 | LXC | DNS filtering |
+| Monitoring | 10.10.10.103 | PC1 | LXC | Prometheus/Grafana |
+| Reverse Proxy | 10.10.10.104 | PC1 | LXC | Nginx Proxy Manager |
+| Documentation | 10.10.10.105 | PC1 | LXC | MkDocs server |
+| Gaming VM | 10.10.10.201 | PC2 | VM | Windows + GPU passthrough |
+| Media Server | 10.10.10.202 | PC2 | VM | Nextcloud/Jellyfin |
+EOF
+
+# Create services documentation
+mkdir -p docs/services
+cat > docs/services/overview.md << 'EOF'
+# Service Overview
+
+## Service Status
+
+- 🟢 PiHole: Active
+- 🟢 Monitoring: Active  
+- 🟢 Reverse Proxy: Active
+- 🟢 Documentation: Active
+- 🟢 Media Server: Active
+
+## Access URLs
+
+- [PiHole Admin](http://pihole.homelab.local)
+- [Grafana](http://monitor.homelab.local)
+- [Nextcloud](http://files.homelab.local)
+- [Jellyfin](http://media.homelab.local)
+- [Documentation](http://docs.homelab.local)
+EOF
+
+# Create runbooks
+mkdir -p docs/runbooks
+cat > docs/runbooks/backup.md << 'EOF'
+# Backup Procedures
+
+## ZFS Snapshots
+
+Automated daily snapshots are configured on both nodes:
+
+```bash
+# Manual snapshot
+zfs snapshot vm-storage@manual-$(date +%Y%m%d-%H%M)
+
+# List snapshots
+zfs list -t snapshot
+
+# Restore from snapshot
+zfs rollback vm-storage@snapshot-name
+```
+
+## VM Backups
+
+Weekly backups are configured in Proxmox:
+
+1. Navigate to Datacenter → Backup
+2. Verify backup schedule
+3. Check backup storage usage
+EOF
+
+# Create API documentation
+mkdir -p docs/api
+cat > docs/api/overview.md << 'EOF'
+# API Documentation
+
+## Available APIs
+
+- **Proxmox API**: https://10.10.10.100:8006/api2/json
+- **Grafana API**: http://monitor.homelab.local/api
+- **PiHole API**: http://pihole.homelab.local/admin/api.php
+
+## Authentication
+
+Most APIs require authentication tokens or API keys.
+EOF
+
+# Create Docker Compose for MkDocs
+cat > docker-compose.yml << 'EOF'
+version: '3.8'
+services:
+  mkdocs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: mkdocs
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/docs
+    command: serve --dev-addr=0.0.0.0:8000
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: mkdocs-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./site:/usr/share/nginx/html:ro
+    depends_on:
+      - mkdocs
+    restart: unless-stopped
+EOF
+
+# Create Nginx configuration for production serving
+cat > nginx.conf << 'EOF'
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    upstream mkdocs {
+        server mkdocs:8000;
+    }
+
+    server {
+        listen 80;
+        server_name docs.homelab.local;
+
+        location / {
+            proxy_pass http://mkdocs;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+EOF
+
+# Build initial site
+docker-compose up -d mkdocs
+sleep 10
+docker exec mkdocs mkdocs build
+docker cp mkdocs:/docs/site ./
+docker-compose up -d
+
+# Create update script for documentation
+cat > update-docs.sh << 'EOF'
+#!/bin/bash
+# Update documentation script
+
+echo "Pulling latest documentation changes..."
+git pull
+
+echo "Rebuilding documentation..."
+docker exec mkdocs mkdocs build
+
+echo "Copying built site..."
+docker cp mkdocs:/docs/site ./
+
+echo "Restarting nginx..."
+docker-compose restart nginx
+
+echo "Documentation updated successfully!"
+echo "Access at: http://docs.homelab.local"
+EOF
+
+chmod +x update-docs.sh
+
+# Initialize git repository for version control
+git init
+git add .
+git commit -m "Initial documentation setup"
+
+echo "Documentation server setup complete!"
+echo "Access at: http://10.10.10.105"
+echo "Or via domain: http://docs.homelab.local (after reverse proxy setup)"
+          </code></pre>
+          
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">📚 Documentation Features</h4>
+            <ul class="text-sm space-y-1">
+              <li>• <strong>Material Theme:</strong> Professional, responsive design</li>
+              <li>• <strong>Search:</strong> Full-text search across all documentation</li>
+              <li>• <strong>Dark/Light Mode:</strong> User preference toggle</li>
+              <li>• <strong>Code Highlighting:</strong> Syntax highlighting for code blocks</li>
+              <li>• <strong>Git Integration:</strong> Version control for documentation</li>
+              <li>• <strong>Live Reload:</strong> Automatic updates during development</li>
+              <li>• <strong>Multi-Project:</strong> Organized sections for different topics</li>
+            </ul>
+          </div>
+
+          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+            <h4 class="font-semibold text-green-900 dark:text-green-100 mb-2">🔄 Updating Documentation</h4>
+            <p class="text-sm mb-2">To add or update documentation:</p>
+            <ol class="text-sm space-y-1 list-decimal list-inside">
+              <li>SSH into the documentation server: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">ssh root@10.10.10.105</code></li>
+              <li>Navigate to documentation directory: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">cd ~/documentation</code></li>
+              <li>Edit markdown files in the <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">docs/</code> directory</li>
+              <li>Run update script: <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">./update-docs.sh</code></li>
+              <li>Changes are immediately visible at <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">http://docs.homelab.local</code></li>
+            </ol>
+          </div>
         </div>
       </div>
     </section>
@@ -637,6 +1020,9 @@ docker-compose up -d
 # IP: 10.10.10.104
 
 # Domain: monitor.yourdomain.com
+# IP: 10.10.10.104
+
+# Domain: docs.yourdomain.com
 # IP: 10.10.10.104</code></pre>
 
           <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
@@ -713,6 +1099,11 @@ http://10.10.10.104:81
                       <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">monitor.yourdomain.com</td>
                       <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.103:3000</td>
                       <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">Grafana</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">docs.yourdomain.com</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2 font-mono">10.10.10.105:80</td>
+                      <td class="border border-gray-300 dark:border-gray-600 px-3 py-2">MkDocs Documentation</td>
                     </tr>
                   </tbody>
                 </table>
