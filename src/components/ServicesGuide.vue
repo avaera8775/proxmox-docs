@@ -156,7 +156,7 @@ const domains = [
         @click="toggleSection('pc1')"
         class="w-full flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
       >
-        <h2 class="text-2xl font-semibold text-green-900 dark:text-green-100">PVE PC1 Services Implementation</h2>
+        <h2 class="text-2xl font-semibold text-green-900 dark:text-green-100">PVE-PC1 Services Implementation</h2>
         <svg 
           class="w-6 h-6 text-green-600 dark:text-green-400 transform transition-transform"
           :class="{ 'rotate-180': expandedSections.pc1 }"
