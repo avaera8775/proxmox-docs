@@ -21,13 +21,13 @@ const toggleSection = (section: string) => {
 }
 
 const services = [
-  { name: 'Development VM', ip: '10.10.10.101', node: 'PC1', type: 'VM', purpose: 'Python, Java, Docker dev' },
-  { name: 'PiHole', ip: '10.10.10.102', node: 'PC1', type: 'LXC', purpose: 'DNS filtering' },
-  { name: 'Monitoring Stack', ip: '10.10.10.103', node: 'PC1', type: 'LXC', purpose: 'Prometheus, Grafana' },
-  { name: 'Reverse Proxy', ip: '10.10.10.104', node: 'PC1', type: 'LXC', purpose: 'Traefik/Nginx' },
-  { name: 'Documentation Server', ip: '10.10.10.105', node: 'PC1', type: 'LXC', purpose: 'MkDocs documentation' },
-  { name: 'Gaming VM', ip: '10.10.10.201', node: 'PC2', type: 'VM', purpose: 'Windows + GPU passthrough' },
-  { name: 'Storage/Media VM', ip: '10.10.10.202', node: 'PC2', type: 'VM', purpose: 'Nextcloud, Jellyfin' }
+  { name: 'Development VM', ip: '10.10.10.101', node: 'PVE-PC1', type: 'VM', purpose: 'Python, Java, Docker dev' },
+  { name: 'PiHole', ip: '10.10.10.102', node: 'PVE-PC1', type: 'LXC', purpose: 'DNS filtering' },
+  { name: 'Monitoring Stack', ip: '10.10.10.103', node: 'PVE-PC1', type: 'LXC', purpose: 'Prometheus, Grafana' },
+  { name: 'Reverse Proxy', ip: '10.10.10.104', node: 'PVE-PC1', type: 'LXC', purpose: 'Traefik/Nginx' },
+  { name: 'Documentation Server', ip: '10.10.10.105', node: 'PVE-PC1', type: 'LXC', purpose: 'MkDocs documentation' },
+  { name: 'Gaming VM', ip: '10.10.10.201', node: 'PVE-PC2', type: 'VM', purpose: 'Windows + GPU passthrough' },
+  { name: 'Storage/Media VM', ip: '10.10.10.202', node: 'PVE-PC2', type: 'VM', purpose: 'Nextcloud, Jellyfin' }
 ]
 
 const domains = [
@@ -109,8 +109,9 @@ const domains = [
         <ul class="list-disc list-inside mb-6 space-y-2">
           <li>Core infrastructure complete (Proxmox installed, ZFS pools created, cluster established)</li>
           <li>Network: 10.10.10.0/24 VLAN</li>
-          <li>PC1: 10.10.10.100 (Dev Server)</li>
-          <li>PC2: 10.10.10.200 (Gaming/Storage)</li>
+          <li>Admin-PC: 10.10.10.50 (Admin/Client PC)</li>
+          <li>PVE-PC1: 10.10.10.100 (Dev Server)</li>
+          <li>PVE-PC2: 10.10.10.200 (Gaming/Storage)</li>
         </ul>
 
         <!-- IP Address Plan Table -->
@@ -155,7 +156,7 @@ const domains = [
         @click="toggleSection('pc1')"
         class="w-full flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
       >
-        <h2 class="text-2xl font-semibold text-green-900 dark:text-green-100">PC1 Services Implementation</h2>
+        <h2 class="text-2xl font-semibold text-green-900 dark:text-green-100">PVE PC1 Services Implementation</h2>
         <svg 
           class="w-6 h-6 text-green-600 dark:text-green-400 transform transition-transform"
           :class="{ 'rotate-180': expandedSections.pc1 }"
@@ -517,8 +518,8 @@ Welcome to the comprehensive documentation for our Proxmox-based homelab infrast
 graph TB
     A[Internet] --> B[Router]
     B --> C[Proxmox Cluster]
-    C --> D[PC1 - Development]
-    C --> E[PC2 - Gaming/Storage]
+    C --> D[PVE-PC1 - Development]
+    C --> E[PVE-PC2 - Gaming/Storage]
     D --> F[PiHole]
     D --> G[Monitoring]
     D --> H[Reverse Proxy]
@@ -541,8 +542,8 @@ cat > docs/infrastructure/overview.md << 'EOF'
 
 ## Hardware
 
-- **PC1**: Development and services node
-- **PC2**: Gaming and storage node
+- **PVE-PC1**: Development and services node
+- **PVE-PC2**: Gaming and storage node
 
 ## Network
 
@@ -554,13 +555,13 @@ cat > docs/infrastructure/overview.md << 'EOF'
 
 | Service | IP | Node | Type | Purpose |
 |---------|----|----- |------|---------|
-| Development VM | 10.10.10.101 | PC1 | VM | Development environment |
-| PiHole | 10.10.10.102 | PC1 | LXC | DNS filtering |
-| Monitoring | 10.10.10.103 | PC1 | LXC | Prometheus/Grafana |
-| Reverse Proxy | 10.10.10.104 | PC1 | LXC | Nginx Proxy Manager |
-| Documentation | 10.10.10.105 | PC1 | LXC | MkDocs server |
-| Gaming VM | 10.10.10.201 | PC2 | VM | Windows + GPU passthrough |
-| Media Server | 10.10.10.202 | PC2 | VM | Nextcloud/Jellyfin |
+| Development VM | 10.10.10.101 | PVE-PC1 | VM | Development environment |
+| PiHole | 10.10.10.102 | PVE-PC1 | LXC | DNS filtering |
+| Monitoring | 10.10.10.103 | PVE-PC1 | LXC | Prometheus/Grafana |
+| Reverse Proxy | 10.10.10.104 | PVE-PC1 | LXC | Nginx Proxy Manager |
+| Documentation | 10.10.10.105 | PVE-PC1 | LXC | MkDocs server |
+| Gaming VM | 10.10.10.201 | PVE-PC2 | VM | Windows + GPU passthrough |
+| Media Server | 10.10.10.202 | PVE-PC2 | VM | Nextcloud/Jellyfin |
 EOF
 
 # Create services documentation
@@ -760,7 +761,7 @@ echo "Or via domain: http://docs.homelab.local (after reverse proxy setup)"
         @click="toggleSection('pc2')"
         class="w-full flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
       >
-        <h2 class="text-2xl font-semibold text-purple-900 dark:text-purple-100">PC2 Services Implementation</h2>
+        <h2 class="text-2xl font-semibold text-purple-900 dark:text-purple-100">PVE-PC2 Services Implementation</h2>
         <svg 
           class="w-6 h-6 text-purple-600 dark:text-purple-400 transform transition-transform"
           :class="{ 'rotate-180': expandedSections.pc2 }"
