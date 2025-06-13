@@ -370,11 +370,12 @@ zfs create storage/nextcloud
         </button>
         <div v-else class="w-32"></div>
 
-        <button 
+        <button
           @click="navigateToHome"
-          class="px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          class="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Back to Index
+
+          Back To Index
         </button>
 
         <button 
