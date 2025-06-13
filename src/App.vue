@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-// No need for manual navigation logic anymore - Vue Router handles it
 </script>
 
 <template>
