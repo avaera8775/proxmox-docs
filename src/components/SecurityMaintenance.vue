@@ -8,7 +8,6 @@ const {
   navigateToHome,
   navigateToPrevious,
   getProgressInfo,
-  guides,
 } = useGuideNavigation();
 const progress = getProgressInfo();
 
