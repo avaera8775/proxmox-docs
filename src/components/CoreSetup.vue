@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useGuideNavigation } from '../composables/useGuideNavigation'
 
-const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
+const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, getProgressInfo } = useGuideNavigation()
 const progress = getProgressInfo()
 </script>
 

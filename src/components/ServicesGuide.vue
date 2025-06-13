@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useGuideNavigation } from '../composables/useGuideNavigation'
 
-const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo, guides } = useGuideNavigation()
+const { currentGuide, nextGuide, previousGuide, navigateToHome, navigateToNext, navigateToPrevious, getProgressInfo } = useGuideNavigation()
 const progress = getProgressInfo()
 
 // Services data
