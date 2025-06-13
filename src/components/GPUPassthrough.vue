@@ -491,17 +491,6 @@ vga: none
         <div v-else class="w-32"></div>
       </div>
 
-      <!-- Guide Progress Indicator -->
-      <div class="mt-6 flex justify-center">
-        <div class="flex space-x-2">
-          <div 
-            v-for="(guide, index) in guides" 
-            :key="guide.path"
-            class="w-3 h-3 rounded-full transition-colors"
-            :class="index <= progress.current - 1 ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
-          ></div>
-        </div>
-      </div>
     </section>
 
   </main>

@@ -1103,8 +1103,7 @@ ps aux --sort=-%cpu | head -10</code></pre>
           </svg>
           {{ previousGuide.title }}
         </button>
-        <div v-else class="w-32"></div>
-
+        
         <button
           @click="navigateToHome"
           class="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -1113,7 +1112,7 @@ ps aux --sort=-%cpu | head -10</code></pre>
           Back To Index
         </button>
 
-        <div class="w-34 flex justify-end">
+        <div class="w-60 flex justify-end">
           <div class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium">
             Security Complete!
           </div>
